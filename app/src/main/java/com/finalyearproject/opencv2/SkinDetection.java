@@ -52,12 +52,20 @@ public class SkinDetection extends AppCompatActivity implements CameraBridgeView
         Imgproc.cvtColor(inputFrame.rgba(),m1, Imgproc.COLOR_RGBA2RGB);
 
         //Resizing the image to 120x120
-//        Size newSize = new Size(120, 120);
-//        Mat fit = new Mat(newSize, CvType.CV_8UC3);
-//        Imgproc.resize(m1,fit,newSize,Imgproc.INTER_LINEAR);
+        Size newSize = new Size(120, 120);
+        Mat fit = new Mat(newSize, CvType.CV_8UC3);
+        Imgproc.resize(m1,fit,newSize,Imgproc.INTER_LINEAR);
 
-        //calling preprocessing method
+        //calling pre-processing method
         m2 = skinDetection(m1);
+
+        //Resizing it back to original size cause android doesn't support returning resized image
+        Mat resized = inputFrame.rgba();
+        Imgproc.resize(m2,m2,resized.size());
+
+        //flipping the image
+        Core.flip(m2.t(),m2,1);
+
         return m2;
     }
 
@@ -82,9 +90,6 @@ public class SkinDetection extends AppCompatActivity implements CameraBridgeView
         // blur the mask to help remove noise
         final Size ksize = new Size(3, 3);
         Imgproc.GaussianBlur(skin, skin, ksize, 3);
-
-        //flipping the image
-        Core.flip(skin.t(),skin,1);
 
         return skin;
     }
