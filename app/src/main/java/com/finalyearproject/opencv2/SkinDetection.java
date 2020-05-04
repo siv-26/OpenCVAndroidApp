@@ -1,7 +1,6 @@
 package com.finalyearproject.opencv2;
 
 import android.os.Bundle;
-import android.os.Handler;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -39,11 +38,11 @@ public class SkinDetection extends AppCompatActivity implements CameraBridgeView
 
     @Override
     public void onCameraViewStarted(int width, int height) {
-        m1 = new Mat(width,height, CvType.CV_8UC4);
-        m2 = new Mat(width,height, CvType.CV_8UC4);
-        mask = new Mat(width,height, CvType.CV_8UC4);
-        temp1 = new Mat(width,height, CvType.CV_8UC4);
-        temp2 = new Mat(width,height, CvType.CV_8UC4);
+        m1 = new Mat(width,height, CvType.CV_8UC3);
+        m2 = new Mat(width,height, CvType.CV_8UC3);
+//        mask = new Mat(width,height, CvType.CV_8UC3);
+//        temp1 = new Mat(width,height, CvType.CV_8UC3);
+//        temp2 = new Mat(width,height, CvType.CV_8UC3);
     }
 
     @Override
@@ -53,19 +52,20 @@ public class SkinDetection extends AppCompatActivity implements CameraBridgeView
 
     @Override
     public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
-        Imgproc.resize(m1,m1,new Size(120,120), Imgproc.INTER_LINEAR);
+        //Imgproc.resize(m1,m1,new Size(120,120), Imgproc.INTER_LINEAR);
+        //m2.empty();
         Imgproc.cvtColor(inputFrame.rgba(),m1, Imgproc.COLOR_RGBA2RGB);
-        Imgproc.cvtColor(m1,m1, Imgproc.COLOR_RGB2BGR);
-        Imgproc.cvtColor(m1,mask, Imgproc.COLOR_BGR2YCrCb);  //Save the mask
-        Core.inRange(mask,scalarLow,scalarHigh,m2);  //Get the hsv ranges
-        Core.bitwise_and(m1,m1,m2,temp2);  //Bitwise-And into m2 with temp2 mask
+//        Imgproc.cvtColor(m1,m1, Imgproc.COLOR_RGB2BGR);
+//        Imgproc.cvtColor(m1,mask, Imgproc.COLOR_BGR2YCrCb);  //Save the mask
+//        Core.inRange(mask,scalarLow,scalarHigh,temp1);  //Get the hsv ranges
+//        Core.bitwise_and(m1,m1,temp2,temp1);  //Bitwise-And into m2 with temp2 mask
+//        Imgproc.GaussianBlur(temp2,m2,new Size(3,3),3);  //Gaussian Blur with m2 frame and 3x3 matrix
+//
+//        Core.flip(m2.t(),m2,1);
 
-        Imgproc.GaussianBlur(m2,m2,new Size(3,3),3);  //Gaussian Blur with m2 frame and 3x3 matrix
+        //Core.divide(m2, new Scalar(255.0), temp1); //down-scaling for normalization purposes
 
-        Core.flip(m2.t(),m2,1);
-        Core.divide(m2, new Scalar(255.0), temp1);
-
-        return m2;
+//        return m2;
 
         //String m2Dump = m2.dump();
         //String temp1Dump = temp1.dump();
@@ -75,6 +75,36 @@ public class SkinDetection extends AppCompatActivity implements CameraBridgeView
         //Imgproc.cvtColor(inputFrame.rgba(),m1,Imgproc.COLOR_BGR2HSV);
         //Imgproc.cvtColor(m1,m1,Imgproc.COLOR_RGB2HSV_FULL);
         //Imgproc.resize(m2,m2,m1.size());
+        m2 = skinDetection(m1);
+        return m2;
+    }
+
+    private Mat skinDetection(Mat src) {
+        // define the upper and lower boundaries of the HSV pixel
+
+        // Convert to HSV
+        Mat rgbFrame = new Mat(src.rows(), src.cols(), CvType.CV_8U, new Scalar(3));
+        Imgproc.cvtColor(src,rgbFrame, Imgproc.COLOR_RGB2BGR,3);
+
+        //Convert to YCRb
+        Mat ycrFrame = new Mat(rgbFrame.rows(), rgbFrame.cols(), CvType.CV_8U, new Scalar(3));
+        Imgproc.cvtColor(rgbFrame,ycrFrame, Imgproc.COLOR_BGR2YCrCb,3);  //Save the mask
+
+        // Mask the image for skin colors
+        Mat skinMask = new Mat(ycrFrame.rows(), ycrFrame.cols(), CvType.CV_8U, new Scalar(3));
+        Core.inRange(ycrFrame, scalarLow, scalarHigh, skinMask);
+
+        //Bitwise function
+        Mat skin = new Mat(skinMask.rows(), skinMask.cols(), CvType.CV_8U, new Scalar(3));
+        Core.bitwise_and(src, src, skin, skinMask);
+
+        // blur the mask to help remove noise
+        final Size ksize = new Size(3, 3);
+        Imgproc.GaussianBlur(skin, skin, ksize, 3);
+
+        Core.flip(skin.t(),skin,1);
+
+        return skin;
     }
 
     @Override

@@ -132,6 +132,7 @@ public abstract class CameraBridgeViewBase extends SurfaceView implements Surfac
          * This method is invoked when delivery of the frame needs to be done.
          * The returned values - is a modified frame which needs to be displayed on the screen.
          * TODO: pass the parameters specifying the format of the frame (BPP, YUV or RGB and etc)
+         * @return
          */
         public Mat onCameraFrame(CvCameraViewFrame inputFrame);
     };
