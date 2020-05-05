@@ -29,7 +29,9 @@
             </intent-filter>
         </activity>
         <activity android:name=".SkinDetection"
-            android:label="Skin Detection"/>
+            android:label="Gesture Recognition"/>
+        <activity android:name=".SpeechTranslator"
+            android:label="Speech To Text"/>
     </application>
 
 </manifest>

@@ -3,6 +3,7 @@ package com.finalyearproject.opencv2;
 import android.content.res.AssetFileDescriptor;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -37,19 +38,21 @@ public class SkinDetection extends AppCompatActivity implements CameraBridgeView
     private float[][] ProbArray = null;
     private Interpreter tflite;
     private List<String> labelList;
-    private int result;
     private String resultString;
     private static final int  DIM_HEIGHT = 120;
     private static final int DIM_WIDTH = 120;
     private static final int BYTES = 12;
     private static int digit = -1;
     private static float  prob = 0.0f;
-
+    TextView textView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_skin);
+
+        textView = findViewById(R.id.textView);
+
         OpenCVLoader.initDebug();
 
         try{
@@ -64,7 +67,7 @@ public class SkinDetection extends AppCompatActivity implements CameraBridgeView
         ProbArray = new float[1][26];
 
         javaCameraView = (JavaCameraView) findViewById(R.id.camview);
-        javaCameraView.setCameraIndex(0);
+        javaCameraView.setCameraIndex(1);
 
         scalarLow = new Scalar(0,133,77);
         scalarHigh = new Scalar(235,173,127);
@@ -103,11 +106,8 @@ public class SkinDetection extends AppCompatActivity implements CameraBridgeView
         //converting frame to tflite format
         convertMattoTfLiteInput(rescaled);
 
-        //passing converted image to cnn for classification
+        //passing converted image to cnn for classification and gives result
         runModel();
-
-        //classifies output
-        classify();
 
         //Resizing it back to original size cause android doesn't support returning resized image
         Mat resized = inputFrame.rgba();
@@ -140,11 +140,11 @@ public class SkinDetection extends AppCompatActivity implements CameraBridgeView
     private void runModel() {
         if(imgData != null)
             tflite.run(imgData, ProbArray);
+        resultString = maxProbIndex(ProbArray[0]);
+        textView.setText(resultString);
+        Log.d("classify","Classification = "+resultString);
     }
 
-    private void classify() {
-        Log.d("classify","Classification done"+maxProbIndex(ProbArray[0]));
-    }
 
     private Mat skinDetection(Mat src) {
 
@@ -169,7 +169,7 @@ public class SkinDetection extends AppCompatActivity implements CameraBridgeView
         Imgproc.GaussianBlur(skin, skin, ksize, 3);
 
         //flipping the image
-        Core.flip(skin.t(),skin,1);
+        Core.flip(skin.t(),skin,0);
 
         return skin;
     }
@@ -185,7 +185,7 @@ public class SkinDetection extends AppCompatActivity implements CameraBridgeView
         }
     }
 
-    private  int maxProbIndex(float[] probs) {
+    private String maxProbIndex(float[] probs) {
         int maxIndex = -1;
         float maxProb = 0.0f;
         for (int i = 0; i < probs.length; i++) {
@@ -196,7 +196,7 @@ public class SkinDetection extends AppCompatActivity implements CameraBridgeView
         }
         prob = maxProb;
         digit = maxIndex;
-        return maxIndex;
+        return labelList.get(maxIndex);
     }
 
     @Override

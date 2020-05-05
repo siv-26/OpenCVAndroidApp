@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">OpenCV2</string>
+    <string name="speech_text">Click on the mic to allow speech to text translation.</string>
 </resources>
