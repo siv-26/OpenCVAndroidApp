@@ -21,12 +21,19 @@ android {
         }
     }
 
+    // need this to store tflite models in assets
+    aaptOptions {
+        noCompress "tflite"
+        noCompress "lite"
+    }
+
 }
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
     implementation 'gun0912.ted:tedpermission:2.2.3'
+    implementation 'org.tensorflow:tensorflow-lite:+'
 
     implementation 'androidx.appcompat:appcompat:1.1.0'
     implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
