@@ -67,7 +67,7 @@ public class SkinDetection extends AppCompatActivity implements CameraBridgeView
         ProbArray = new float[1][26];
 
         javaCameraView = (JavaCameraView) findViewById(R.id.camview);
-        javaCameraView.setCameraIndex(1);
+        javaCameraView.setCameraIndex(0);
 
         scalarLow = new Scalar(0,133,77);
         scalarHigh = new Scalar(235,173,127);
@@ -169,7 +169,7 @@ public class SkinDetection extends AppCompatActivity implements CameraBridgeView
         Imgproc.GaussianBlur(skin, skin, ksize, 3);
 
         //flipping the image
-        Core.flip(skin.t(),skin,0);
+        //Core.flip(skin.t(),skin,0);
 
         return skin;
     }
