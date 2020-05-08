@@ -7,13 +7,15 @@
     android:layout_height="match_parent">
 
     <org.opencv.android.JavaCameraView
+        android:id="@+id/camview"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        android:id="@+id/camview"/>
+        app:layout_constraintVertical_bias="0.0" />
 
     <TextView
         android:id="@+id/textView"
@@ -28,5 +30,20 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@+id/camview"
         app:layout_constraintVertical_bias="0.072" />
+
+    <MultiAutoCompleteTextView
+        android:id="@+id/mactv"
+        android:layout_width="400dp"
+        android:layout_height="50dp"
+        android:layout_marginBottom="36dp"
+        android:completionThreshold="1"
+        android:dropDownHeight="200dp"
+        android:focusedByDefault="true"
+        android:gravity="center"
+        android:visibility="visible"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.498"
+        app:layout_constraintStart_toStartOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

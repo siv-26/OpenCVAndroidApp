@@ -2,8 +2,17 @@ package com.finalyearproject.opencv2;
 
 import android.content.res.AssetFileDescriptor;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
+import android.speech.tts.TextToSpeech;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
+import android.widget.ArrayAdapter;
+import android.widget.MultiAutoCompleteTextView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -21,38 +30,129 @@ import org.tensorflow.lite.Interpreter;
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+
 
 public class SkinDetection extends AppCompatActivity implements CameraBridgeViewBase.CvCameraViewListener2 {
 
-    JavaCameraView javaCameraView;
-    Mat m1,m2,mask,temp1,temp2;
-    Scalar scalarLow,scalarHigh;
+    private JavaCameraView javaCameraView;
+    private Mat m1,m2;
+    private Scalar scalarLow,scalarHigh;
     protected ByteBuffer imgData = null;
     private float[][] ProbArray = null;
     private Interpreter tflite;
     private List<String> labelList;
-    private String resultString;
+    private Character resultString;
     private static final int  DIM_HEIGHT = 120;
     private static final int DIM_WIDTH = 120;
     private static final int BYTES = 12;
     private static int digit = -1;
     private static float  prob = 0.0f;
-    TextView textView;
+    private TextView textView;
+    private MultiAutoCompleteTextView text1;
+    private TextToSpeech textToSpeech;
+    private ArrayList<String> words= new ArrayList<String>();
+    private ArrayList<Character> cnnOutputArray = new ArrayList<Character>();
+    private HashMap<Character, Integer> elementCountMap = new HashMap<Character, Integer>();
+    private Set<Map.Entry<Character, Integer>> entrySet;
+    private char element;
+    private int frequency = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_skin);
 
+        //text to speech part
         textView = findViewById(R.id.textView);
+        text1 = findViewById(R.id.mactv);
+        text1.requestFocus();
 
+        textToSpeech = new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
+            @Override
+            public void onInit(int status) {
+                if (status == TextToSpeech.SUCCESS) {
+                    int ttsLang = textToSpeech.setLanguage(Locale.ENGLISH);
+
+                    if (ttsLang == TextToSpeech.LANG_MISSING_DATA
+                            || ttsLang == TextToSpeech.LANG_NOT_SUPPORTED) {
+                        Log.e("TTS", "The Language is not supported!");
+                    } else {
+                        Log.i("TTS", "Language Supported.");
+                    }
+                    Log.i("TTS", "Initialization success.");
+
+
+                } else {
+                    Toast.makeText(getApplicationContext(), "TTS Initialization failed!", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+        String data="";
+        InputStream is = this.getResources().openRawResource(R.raw.input);
+        BufferedReader reader = new BufferedReader((new InputStreamReader(is)));
+
+        if(is!=null)
+        {
+            try{
+                while((data=reader.readLine())!=null)
+                {
+                    words.add(data);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        text1.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+            }
+
+            @Override
+            public void onTextChanged(final CharSequence s, int start, int before, int count) {
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+
+                if(editable.length()!=0){
+                    char s= editable.charAt(editable.length()-1);
+                    if (s=='.') {
+                        Log.e(Character.toString(s), "pressed");
+
+                        String sentence = text1.getText().toString();
+
+                        sentence=sentence.substring(sentence.lastIndexOf('\n')+1,sentence.length());
+
+                        int speechStatus = textToSpeech.speak(sentence, TextToSpeech.QUEUE_FLUSH, null);
+
+                        if (speechStatus == TextToSpeech.ERROR) {
+                            Log.e("TTS", "Error in converting Text to Speech!");
+                        }
+
+                        text1.setText("");
+                    }}
+            }
+        });
+        ArrayAdapter adapter = new
+                ArrayAdapter(this,android.R.layout.simple_list_item_1,words);
+
+        text1.setAdapter(adapter);
+        text1.setTokenizer(new SpaceTokenizer());
+
+        //ML and skin detection part
         OpenCVLoader.initDebug();
 
         try{
@@ -140,11 +240,50 @@ public class SkinDetection extends AppCompatActivity implements CameraBridgeView
     private void runModel() {
         if(imgData != null)
             tflite.run(imgData, ProbArray);
-        resultString = maxProbIndex(ProbArray[0]);
-        textView.setText(resultString);
-        Log.d("classify","Classification = "+resultString);
+        resultString = maxProbIndex(ProbArray[0]).toCharArray()[0];
+        cnnOutputArray.add(resultString);
+        if(cnnOutputArray.size()==60)
+        {
+            resultString = mostOccurring(cnnOutputArray);
+            textView.setText(resultString.toString());
+            runOnUiThread(new Runnable() {
+                public void run() {
+                    text1.append(resultString.toString());
+                }
+            });
+            Log.d("classify","Classification = "+resultString);
+            cnnOutputArray.clear();
+        }
     }
 
+    private char mostOccurring(ArrayList<Character> cnnOutputArray) {
+
+        for (Character i : cnnOutputArray)
+        {
+            if (elementCountMap.containsKey(i))
+            {
+                //If an element is present, incrementing its count by 1
+                elementCountMap.put(i, elementCountMap.get(i)+1);
+            }
+            else
+            {
+                //If an element is not present, put that element with 1 as its value
+                elementCountMap.put(i, 1);
+            }
+        }
+
+         entrySet = elementCountMap.entrySet();
+
+        for (Map.Entry<Character, Integer> entry : entrySet)
+        {
+            if(entry.getValue() > frequency)
+            {
+                element = entry.getKey();
+                frequency = entry.getValue();
+            }
+        }
+        return element;
+    }
 
     private Mat skinDetection(Mat src) {
 
@@ -174,8 +313,7 @@ public class SkinDetection extends AppCompatActivity implements CameraBridgeView
         return skin;
     }
 
-    private void convertMattoTfLiteInput(Mat mat)
-    {
+    private void convertMattoTfLiteInput(Mat mat) {
         imgData.rewind();
         int pixel = 0;
         for (int i = 0; i < DIM_HEIGHT; ++i) {
@@ -219,5 +357,7 @@ public class SkinDetection extends AppCompatActivity implements CameraBridgeView
     protected void onDestroy() {
         super.onDestroy();
         javaCameraView.disableView();
+        textToSpeech.stop();
+        textToSpeech.shutdown();
     }
 }

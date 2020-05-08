@@ -17,6 +17,7 @@ import java.util.Locale;
 public class SpeechTranslator extends AppCompatActivity {
     private ImageButton speechTrans;
     private TextView textView;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
