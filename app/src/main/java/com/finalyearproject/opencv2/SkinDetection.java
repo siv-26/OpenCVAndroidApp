@@ -1,15 +1,19 @@
 package com.finalyearproject.opencv2;
 
+import android.content.Intent;
 import android.content.res.AssetFileDescriptor;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.speech.RecognizerIntent;
 import android.speech.tts.TextToSpeech;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.view.View;
 import android.widget.ArrayAdapter;
+import android.widget.ImageButton;
 import android.widget.MultiAutoCompleteTextView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -68,6 +72,7 @@ public class SkinDetection extends AppCompatActivity implements CameraBridgeView
     private Set<Map.Entry<Character, Integer>> entrySet;
     private char element;
     private int frequency = 1;
+    private ImageButton speechToTextBtn;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -115,37 +120,6 @@ public class SkinDetection extends AppCompatActivity implements CameraBridgeView
             }
         }
 
-        text1.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-            }
-
-            @Override
-            public void onTextChanged(final CharSequence s, int start, int before, int count) {
-            }
-
-            @Override
-            public void afterTextChanged(Editable editable) {
-
-                if(editable.length()!=0){
-                    char s= editable.charAt(editable.length()-1);
-                    if (s=='.') {
-                        Log.e(Character.toString(s), "pressed");
-
-                        String sentence = text1.getText().toString();
-
-                        sentence=sentence.substring(sentence.lastIndexOf('\n')+1,sentence.length());
-
-                        int speechStatus = textToSpeech.speak(sentence, TextToSpeech.QUEUE_FLUSH, null);
-
-                        if (speechStatus == TextToSpeech.ERROR) {
-                            Log.e("TTS", "Error in converting Text to Speech!");
-                        }
-
-                        text1.setText("");
-                    }}
-            }
-        });
         ArrayAdapter adapter = new
                 ArrayAdapter(this,android.R.layout.simple_list_item_1,words);
 
@@ -174,6 +148,9 @@ public class SkinDetection extends AppCompatActivity implements CameraBridgeView
 
         javaCameraView.setCvCameraViewListener(this);
         javaCameraView.enableView();
+
+        //speech to text
+        speechToTextBtn = findViewById(R.id.speechToTextBtn);
     }
 
     @Override
@@ -351,6 +328,20 @@ public class SkinDetection extends AppCompatActivity implements CameraBridgeView
 
     @Override
     public void onPointerCaptureChanged(boolean hasCapture) {
+    }
+
+    public void getSpeechOutput(View view){
+        String sentence = text1.getText().toString();
+
+        sentence=sentence.substring(sentence.lastIndexOf('\n')+1,sentence.length());
+
+        int speechStatus = textToSpeech.speak(sentence, TextToSpeech.QUEUE_FLUSH, null);
+
+        if (speechStatus == TextToSpeech.ERROR) {
+            Log.e("TTS", "Error in converting Text to Speech!");
+        }
+
+        text1.setText("");
     }
 
     @Override
