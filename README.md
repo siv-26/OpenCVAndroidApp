@@ -1,6 +1,6 @@
 **Bi-Directional Augmentative & Alternative Communication System for the Speech & Hearing Impaired**
 
-![](Aspose.Words.2171b730-cddb-4d03-9a91-1daae249497e.001.png)
+![](data_readme/gesture_recognition_001.png)
 
 **Contributors to this project :**
 
@@ -49,7 +49,7 @@ To get started with the project, follow these steps:
 
 The system consists of two major components: Interface for Gesture Translation and Interface for Speech Translation (to text). The system analysis and design cover individual components and defining the Development Life Cycle (SDLC). The system characteristics include data collection of images, creating a dataset of Indian Hand Signs, and training the Convolution Neural Network (CNN) model.
 
-![](Aspose.Words.2171b730-cddb-4d03-9a91-1daae249497e.002.png)
+![](data_readme/System_Design_002.png)
 
 
 
@@ -65,7 +65,7 @@ The system consists of two major components: Interface for Gesture Translation a
 
 The Gesture Translation Mode is where the hand signs are mapped to their respective alphabets. The module offers Prediction by running the trained Convolution Neural Network (CNN) against the hand signs performed by the disabled person. The predicted alphabet is then displayed in a text view that has Text Completion capability so that the person may be able to select the most appropriate word suggestion that helps convey his/her message. 
 
-![](Aspose.Words.2171b730-cddb-4d03-9a91-1daae249497e.003.png)
+![](data_readme/gesture_recognition_001.png)
 
 **Image Preprocessing** 
 
@@ -75,7 +75,8 @@ The image preprocessing steps involve resizing the picture to 120x120, convertin
 
 The chosen model was generated along with many others on a trial and error basis, generating numerous models based on a combination of the following parameters - layer size, epochs, dense layers and convolution layers. This led to the creation of 81 models (3^4). Out of these models the most appropriate one was chosen which had high validation accuracy and minimal loss and did not over fit the data. 
 
-![](Aspose.Words.2171b730-cddb-4d03-9a91-1daae249497e.004.png)![](Aspose.Words.2171b730-cddb-4d03-9a91-1daae249497e.005.png)**Fig. Image Preprocessing Stages 	        Fig. Layers of the Chosen CNN Model** 
+**Fig. Image Preprocessing Stages 	        Fig. Layers of the Chosen CNN Model** 
+![](data_readme/image_processing_003.png)               ![](data_readme/CNN_004.png)
 
 
 
